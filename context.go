@@ -100,6 +100,22 @@ func (c *Context) RunScript(source string, origin string) (*Value, error) {
 	return valueResult(c, rtn)
 }
 
+// RunModule executes the source ES6 Module; origin or filename provides a
+// reference for the script and used in the stack trace if there is an error.
+// error will be of type `*JSError` if not nil.
+func (c *Context) RunModule(source string, origin string) (*Value, error) {
+	cSource := C.CString(source)
+	cOrigin := C.CString(origin)
+	defer C.free(unsafe.Pointer(cSource))
+	defer C.free(unsafe.Pointer(cOrigin))
+
+	c.register()
+	rtn := C.RunModule(c.ptr, cSource, cOrigin)
+	c.deregister()
+
+	return valueResult(c, rtn)
+}
+
 // Global returns the global proxy object.
 // Global proxy object is a thin wrapper whose prototype points to actual
 // context's global object with the properties like Object, etc. This is
